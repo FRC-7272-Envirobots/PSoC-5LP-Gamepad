@@ -1,0 +1,1545 @@
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.StartUp,"ax",%progbits
+  20              		.align	2
+  21              		.global	StartUp
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	StartUp, %function
+  25              	StartUp:
+  26              	.LFB65:
+  27              		.file 1 "main.c"
+   1:main.c        **** /******************************************************************************
+   2:main.c        **** This program is free software; you can redistribute it and/or
+   3:main.c        **** modify it under the terms of the GNU General Public License as
+   4:main.c        **** published by the Free Software Foundation; either version 3 of
+   5:main.c        **** the License, or (at your option) any later verison.
+   6:main.c        **** 
+   7:main.c        **** This program is distributed in the hope that it will be useful, but
+   8:main.c        **** WITHOUT ANY WARRANTY; without even the implied warranty of
+   9:main.c        **** MECHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+  10:main.c        **** the GNU General Public License for more details.
+  11:main.c        **** 
+  12:main.c        **** You should have received a copy of the GNU General Public License
+  13:main.c        **** along with this program; if not, write to the Free Software
+  14:main.c        **** Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+  15:main.c        **** USA
+  16:main.c        **** ***************************************************************************** */
+  17:main.c        **** 
+  18:main.c        **** /*****************************************************************************
+  19:main.c        **** *  Project Name: CyController1
+  20:main.c        **** *  Project Revision: 1.00
+  21:main.c        **** *  Software Version: PSoC Creator 3.2 SP1
+  22:main.c        **** *  Device Tested: CY8C5888LTI-LP097
+  23:main.c        **** *  Compilers Tested: ARM GCC
+  24:main.c        **** *  Related Hardware: CY8CKIT-059
+  25:main.c        **** ***************************************************************************** */
+  26:main.c        **** /* Project Description:
+  27:main.c        ****  * This project will create a simple USB HID joystick for FRC. It has
+  28:main.c        ****  * 8 analog inputs
+  29:main.c        ****  * 22 digital inputs for buttons
+  30:main.c        ****  * 12 digital indicator outputs
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 2
+
+
+  31:main.c        **** ***************************************************************************** */
+  32:main.c        **** 
+  33:main.c        **** #include <project.h>
+  34:main.c        **** #include <stdio.h>
+  35:main.c        **** 
+  36:main.c        **** /* 8 bytes for analog axis data */
+  37:main.c        **** #define ANALOG_SIZE 0
+  38:main.c        **** /* 4 bytes for 32 button inputs. This is the maximum number that WPILib / the Driver Station suppor
+  39:main.c        **** #define BUTTON_SIZE 4
+  40:main.c        **** /* 2 bytes for 12 output indicators such as LEDs */
+  41:main.c        **** #define OUTPUT_SIZE 2
+  42:main.c        **** 
+  43:main.c        **** /* Endpoint 1 is IN (analog and buttons) */
+  44:main.c        **** #define IN_EP  1
+  45:main.c        **** /* Endpiont 2 is OUT (indicators) */
+  46:main.c        **** #define OUT_EP 2
+  47:main.c        **** 
+  48:main.c        **** void StartUp (void); 		/* Function prototype for component startup API */
+  49:main.c        **** void ReadAnalog (void);     /* Function prototype for reading and altering data for joystick inform
+  50:main.c        **** void ReadButtons (void);    /* Function prototype for reading and altering data for digital button 
+  51:main.c        **** void SetOutputs (void);     /* Prototype for driving digital outputs */
+  52:main.c        **** 
+  53:main.c        **** //static uint16 AnalogRaw[ANALOG_SIZE];   /* Raw ADC measurements */
+  54:main.c        **** //static int16  AnalogData[ANALOG_SIZE];   /* Scaled ADC measurements */
+  55:main.c        **** static int8 USB_Input_Data[ANALOG_SIZE + BUTTON_SIZE]; /* USB data to send to the PC */
+  56:main.c        **** static uint8 USB_Output_Data[OUTPUT_SIZE]; /* USB data received from the PC */
+  57:main.c        **** 
+  58:main.c        **** int main()
+  59:main.c        **** {    
+  60:main.c        ****     uint16 outCount;
+  61:main.c        ****     
+  62:main.c        ****     StartUp(); 	/* Calls the proper start API for all the components */
+  63:main.c        **** 	
+  64:main.c        **** 	for(;;)
+  65:main.c        ****     {
+  66:main.c        ****     	while(!USBFS_1_bGetEPAckState(IN_EP)); 	/* Wait for ACK before loading data */
+  67:main.c        ****         
+  68:main.c        **** 		//ReadAnalog();	/* Calls function to read analog inputs */
+  69:main.c        ****         ReadButtons();	/* Calls function to monitor button presses */
+  70:main.c        ****         
+  71:main.c        ****         /*Check to see if the IN Endpoint is empty. If so, load it with Input data to be tranfered 
+  72:main.c        ****         if(USBFS_1_GetEPState(IN_EP) == USBFS_1_IN_BUFFER_EMPTY)
+  73:main.c        ****         {
+  74:main.c        **** 		    /* Load latest analog and button data into the IN EP and send */
+  75:main.c        ****             USBFS_1_LoadInEP(IN_EP, (uint8 *)USB_Input_Data, sizeof(USB_Input_Data));   
+  76:main.c        ****         }
+  77:main.c        ****         
+  78:main.c        ****         /* Check to see if the OUT Endpoint is full from a recieved transaction. */
+  79:main.c        ****         if(USBFS_1_GetEPState(OUT_EP) == USBFS_1_OUT_BUFFER_FULL)
+  80:main.c        ****         {
+  81:main.c        ****             /* Get the number of bytes recieved */
+  82:main.c        ****             outCount = USBFS_1_GetEPCount(OUT_EP);
+  83:main.c        ****             /* Read the OUT endpoint and store data in OUT_Data_Buffer */
+  84:main.c        ****             USBFS_1_ReadOutEP(OUT_EP, USB_Output_Data, outCount);
+  85:main.c        ****             /* Re-enable OUT endpoint */
+  86:main.c        ****             USBFS_1_EnableOutEP(OUT_EP);
+  87:main.c        ****         }
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 3
+
+
+  88:main.c        ****         
+  89:main.c        ****         SetOutputs();   /* Set output values based on the data received from the out EP */
+  90:main.c        ****     }
+  91:main.c        **** }
+  92:main.c        **** 
+  93:main.c        **** void StartUp (void)
+  94:main.c        **** {
+  28              		.loc 1 94 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+  36              	.LVL0:
+  95:main.c        **** 	uint8 i;
+  96:main.c        ****     
+  97:main.c        ****     /* Intialize USB Input EP data array */
+  98:main.c        ****     for (i=0; i < sizeof(USB_Input_Data); i++)
+  37              		.loc 1 98 0
+  38 0002 0023     		movs	r3, #0
+  39 0004 04E0     		b	.L2
+  40              	.LVL1:
+  41              	.L3:
+  99:main.c        ****     {
+ 100:main.c        ****         USB_Input_Data[i] = 0;
+  42              		.loc 1 100 0 discriminator 3
+  43 0006 0021     		movs	r1, #0
+  44 0008 104A     		ldr	r2, .L8
+  45 000a D154     		strb	r1, [r2, r3]
+  98:main.c        ****     {
+  46              		.loc 1 98 0 discriminator 3
+  47 000c 0133     		adds	r3, r3, #1
+  48              	.LVL2:
+  49 000e DBB2     		uxtb	r3, r3
+  50              	.LVL3:
+  51              	.L2:
+  98:main.c        ****     {
+  52              		.loc 1 98 0 is_stmt 0 discriminator 1
+  53 0010 032B     		cmp	r3, #3
+  54 0012 F8D9     		bls	.L3
+  55 0014 0023     		movs	r3, #0
+  56              	.LVL4:
+  57 0016 05E0     		b	.L4
+  58              	.LVL5:
+  59              	.L5:
+ 101:main.c        ****     }
+ 102:main.c        ****     /* Intialize USB Output EP data array */
+ 103:main.c        ****     for (i=0; i < sizeof(USB_Output_Data); i++)
+ 104:main.c        ****     {
+ 105:main.c        ****         USB_Output_Data[i] = 0;
+  60              		.loc 1 105 0 is_stmt 1 discriminator 3
+  61 0018 0C4A     		ldr	r2, .L8
+  62 001a 1A44     		add	r2, r2, r3
+  63 001c 0021     		movs	r1, #0
+  64 001e 1171     		strb	r1, [r2, #4]
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 4
+
+
+ 103:main.c        ****     {
+  65              		.loc 1 103 0 discriminator 3
+  66 0020 0133     		adds	r3, r3, #1
+  67              	.LVL6:
+  68 0022 DBB2     		uxtb	r3, r3
+  69              	.LVL7:
+  70              	.L4:
+ 103:main.c        ****     {
+  71              		.loc 1 103 0 is_stmt 0 discriminator 1
+  72 0024 012B     		cmp	r3, #1
+  73 0026 F7D9     		bls	.L5
+ 106:main.c        ****     }
+ 107:main.c        ****     
+ 108:main.c        ****     CYGlobalIntEnable;           					/* Enable Global interrupts */
+  74              		.loc 1 108 0 is_stmt 1
+  75              		.syntax unified
+  76              	@ 108 "main.c" 1
+  77 0028 62B6     		CPSIE   i
+  78              	@ 0 "" 2
+ 109:main.c        ****     //ADC_Start();        					        /* Initialize ADC */
+ 110:main.c        **** 	//ADC_StartConvert();								/* End ADC conversion */    
+ 111:main.c        **** 	USBFS_1_Start(0, USBFS_1_DWR_VDDD_OPERATION);	/* Start USBFS operation/device 0 and with 5V operat
+  79              		.loc 1 111 0
+  80              		.thumb
+  81              		.syntax unified
+  82 002a 0221     		movs	r1, #2
+  83 002c 0020     		movs	r0, #0
+  84 002e FFF7FEFF 		bl	USBFS_1_Start
+  85              	.LVL8:
+  86              	.L6:
+ 112:main.c        **** 	while(!USBFS_1_bGetConfiguration())
+  87              		.loc 1 112 0 discriminator 1
+  88 0032 FFF7FEFF 		bl	USBFS_1_GetConfiguration
+  89              	.LVL9:
+  90 0036 0028     		cmp	r0, #0
+  91 0038 FBD0     		beq	.L6
+ 113:main.c        ****     {
+ 114:main.c        ****         /* Wait for Device to enumerate */
+ 115:main.c        ****     }			
+ 116:main.c        ****     
+ 117:main.c        ****     USBFS_1_LoadInEP(IN_EP, (uint8 *)USB_Input_Data, sizeof(USB_Input_Data)); /* Loads an inital va
+  92              		.loc 1 117 0
+  93 003a 0422     		movs	r2, #4
+  94 003c 0349     		ldr	r1, .L8
+  95 003e 0120     		movs	r0, #1
+  96 0040 FFF7FEFF 		bl	USBFS_1_LoadInEP
+  97              	.LVL10:
+ 118:main.c        ****     USBFS_1_EnableOutEP(OUT_EP); /* Enable the output endpoint */
+  98              		.loc 1 118 0
+  99 0044 0220     		movs	r0, #2
+ 100 0046 FFF7FEFF 		bl	USBFS_1_EnableOutEP
+ 101              	.LVL11:
+ 102 004a 08BD     		pop	{r3, pc}
+ 103              	.L9:
+ 104              		.align	2
+ 105              	.L8:
+ 106 004c 00000000 		.word	.LANCHOR0
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 5
+
+
+ 107              		.cfi_endproc
+ 108              	.LFE65:
+ 109              		.size	StartUp, .-StartUp
+ 110              		.section	.text.ReadAnalog,"ax",%progbits
+ 111              		.align	2
+ 112              		.global	ReadAnalog
+ 113              		.thumb
+ 114              		.thumb_func
+ 115              		.type	ReadAnalog, %function
+ 116              	ReadAnalog:
+ 117              	.LFB66:
+ 119:main.c        **** }
+ 120:main.c        **** 
+ 121:main.c        **** void ReadAnalog (void)
+ 122:main.c        **** {
+ 118              		.loc 1 122 0
+ 119              		.cfi_startproc
+ 120              		@ args = 0, pretend = 0, frame = 0
+ 121              		@ frame_needed = 0, uses_anonymous_args = 0
+ 122              		@ link register save eliminated.
+ 123              	.LVL12:
+ 124 0000 7047     		bx	lr
+ 125              		.cfi_endproc
+ 126              	.LFE66:
+ 127              		.size	ReadAnalog, .-ReadAnalog
+ 128 0002 00BF     		.section	.text.ReadButtons,"ax",%progbits
+ 129              		.align	2
+ 130              		.global	ReadButtons
+ 131              		.thumb
+ 132              		.thumb_func
+ 133              		.type	ReadButtons, %function
+ 134              	ReadButtons:
+ 135              	.LFB67:
+ 123:main.c        **** 	uint8 i;
+ 124:main.c        ****     
+ 125:main.c        ****     for(i=0; i<ANALOG_SIZE; i++)
+ 126:main.c        ****     {
+ 127:main.c        ****        // AnalogRaw[i] = ADC_GetResult16(i) >> 4;     /* Get ADC reading and keep just the 8 upper 
+ 128:main.c        ****        // AnalogData[i] = AnalogRaw[i] - 127;         /* Adjust axis to center the reading */
+ 129:main.c        ****        // if(AnalogData[i] > 127)
+ 130:main.c        ****        // {
+ 131:main.c        ****        //     AnalogData[i] = 127;
+ 132:main.c        ****        // }
+ 133:main.c        ****        // if(AnalogData[i] < -127)
+ 134:main.c        ****        // {
+ 135:main.c        ****        //     AnalogData[i] = -127;
+ 136:main.c        ****        // }
+ 137:main.c        ****         
+ 138:main.c        ****         /* Move analog data to USB array to prepare for sending */
+ 139:main.c        ****       //  USB_Input_Data[i] = AnalogData[i];
+ 140:main.c        ****     }
+ 141:main.c        **** }
+ 142:main.c        **** 
+ 143:main.c        **** void ReadButtons (void)
+ 144:main.c        **** {
+ 136              		.loc 1 144 0
+ 137              		.cfi_startproc
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 6
+
+
+ 138              		@ args = 0, pretend = 0, frame = 0
+ 139              		@ frame_needed = 0, uses_anonymous_args = 0
+ 140              		.loc 1 144 0
+ 141 0000 10B5     		push	{r4, lr}
+ 142              		.cfi_def_cfa_offset 8
+ 143              		.cfi_offset 4, -8
+ 144              		.cfi_offset 14, -4
+ 145:main.c        **** 	/* Read button values from status registers into USB array to prepare for sending */
+ 146:main.c        ****     USB_Input_Data[ANALOG_SIZE]   = ButtonReg1_Read(); /* First button byte is after the last analo
+ 145              		.loc 1 146 0
+ 146 0002 FFF7FEFF 		bl	ButtonReg1_Read
+ 147              	.LVL13:
+ 148 0006 064C     		ldr	r4, .L13
+ 149 0008 2070     		strb	r0, [r4]
+ 147:main.c        ****     USB_Input_Data[ANALOG_SIZE+1] = ButtonReg2_Read();
+ 150              		.loc 1 147 0
+ 151 000a FFF7FEFF 		bl	ButtonReg2_Read
+ 152              	.LVL14:
+ 153 000e 6070     		strb	r0, [r4, #1]
+ 148:main.c        ****     USB_Input_Data[ANALOG_SIZE+2] = ButtonReg3_Read();
+ 154              		.loc 1 148 0
+ 155 0010 FFF7FEFF 		bl	ButtonReg3_Read
+ 156              	.LVL15:
+ 157 0014 A070     		strb	r0, [r4, #2]
+ 149:main.c        ****     USB_Input_Data[ANALOG_SIZE+3] = ButtonReg4_Read();
+ 158              		.loc 1 149 0
+ 159 0016 FFF7FEFF 		bl	ButtonReg4_Read
+ 160              	.LVL16:
+ 161 001a E070     		strb	r0, [r4, #3]
+ 162 001c 10BD     		pop	{r4, pc}
+ 163              	.L14:
+ 164 001e 00BF     		.align	2
+ 165              	.L13:
+ 166 0020 00000000 		.word	.LANCHOR0
+ 167              		.cfi_endproc
+ 168              	.LFE67:
+ 169              		.size	ReadButtons, .-ReadButtons
+ 170              		.section	.text.main,"ax",%progbits
+ 171              		.align	2
+ 172              		.global	main
+ 173              		.thumb
+ 174              		.thumb_func
+ 175              		.type	main, %function
+ 176              	main:
+ 177              	.LFB64:
+  59:main.c        ****     uint16 outCount;
+ 178              		.loc 1 59 0
+ 179              		.cfi_startproc
+ 180              		@ args = 0, pretend = 0, frame = 0
+ 181              		@ frame_needed = 0, uses_anonymous_args = 0
+ 182 0000 08B5     		push	{r3, lr}
+ 183              		.cfi_def_cfa_offset 8
+ 184              		.cfi_offset 3, -8
+ 185              		.cfi_offset 14, -4
+  62:main.c        **** 	
+ 186              		.loc 1 62 0
+ 187 0002 FFF7FEFF 		bl	StartUp
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 7
+
+
+ 188              	.LVL17:
+ 189              	.L16:
+  66:main.c        ****         
+ 190              		.loc 1 66 0 discriminator 1
+ 191 0006 0120     		movs	r0, #1
+ 192 0008 FFF7FEFF 		bl	USBFS_1_GetEPAckState
+ 193              	.LVL18:
+ 194 000c 0028     		cmp	r0, #0
+ 195 000e FAD0     		beq	.L16
+  69:main.c        ****         
+ 196              		.loc 1 69 0
+ 197 0010 FFF7FEFF 		bl	ReadButtons
+ 198              	.LVL19:
+  72:main.c        ****         {
+ 199              		.loc 1 72 0
+ 200 0014 0120     		movs	r0, #1
+ 201 0016 FFF7FEFF 		bl	USBFS_1_GetEPState
+ 202              	.LVL20:
+ 203 001a 0128     		cmp	r0, #1
+ 204 001c 03D1     		bne	.L17
+  75:main.c        ****         }
+ 205              		.loc 1 75 0
+ 206 001e 0422     		movs	r2, #4
+ 207 0020 0949     		ldr	r1, .L21
+ 208 0022 FFF7FEFF 		bl	USBFS_1_LoadInEP
+ 209              	.LVL21:
+ 210              	.L17:
+  79:main.c        ****         {
+ 211              		.loc 1 79 0
+ 212 0026 0220     		movs	r0, #2
+ 213 0028 FFF7FEFF 		bl	USBFS_1_GetEPState
+ 214              	.LVL22:
+ 215 002c 0128     		cmp	r0, #1
+ 216 002e EAD1     		bne	.L16
+  82:main.c        ****             /* Read the OUT endpoint and store data in OUT_Data_Buffer */
+ 217              		.loc 1 82 0
+ 218 0030 0220     		movs	r0, #2
+ 219 0032 FFF7FEFF 		bl	USBFS_1_GetEPCount
+ 220              	.LVL23:
+  84:main.c        ****             /* Re-enable OUT endpoint */
+ 221              		.loc 1 84 0
+ 222 0036 0246     		mov	r2, r0
+ 223 0038 0449     		ldr	r1, .L21+4
+ 224 003a 0220     		movs	r0, #2
+ 225              	.LVL24:
+ 226 003c FFF7FEFF 		bl	USBFS_1_ReadOutEP
+ 227              	.LVL25:
+  86:main.c        ****         }
+ 228              		.loc 1 86 0
+ 229 0040 0220     		movs	r0, #2
+ 230 0042 FFF7FEFF 		bl	USBFS_1_EnableOutEP
+ 231              	.LVL26:
+  90:main.c        **** }
+ 232              		.loc 1 90 0
+ 233 0046 DEE7     		b	.L16
+ 234              	.L22:
+ 235              		.align	2
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 8
+
+
+ 236              	.L21:
+ 237 0048 00000000 		.word	.LANCHOR0
+ 238 004c 04000000 		.word	.LANCHOR0+4
+ 239              		.cfi_endproc
+ 240              	.LFE64:
+ 241              		.size	main, .-main
+ 242              		.section	.text.SetOutputs,"ax",%progbits
+ 243              		.align	2
+ 244              		.global	SetOutputs
+ 245              		.thumb
+ 246              		.thumb_func
+ 247              		.type	SetOutputs, %function
+ 248              	SetOutputs:
+ 249              	.LFB68:
+ 150:main.c        ****   
+ 151:main.c        ****     
+ 152:main.c        **** }
+ 153:main.c        **** 
+ 154:main.c        **** void SetOutputs (void)
+ 155:main.c        **** {
+ 250              		.loc 1 155 0
+ 251              		.cfi_startproc
+ 252              		@ args = 0, pretend = 0, frame = 0
+ 253              		@ frame_needed = 0, uses_anonymous_args = 0
+ 254              		@ link register save eliminated.
+ 255 0000 7047     		bx	lr
+ 256              		.cfi_endproc
+ 257              	.LFE68:
+ 258              		.size	SetOutputs, .-SetOutputs
+ 259 0002 00BF     		.bss
+ 260              		.align	2
+ 261              		.set	.LANCHOR0,. + 0
+ 262              		.type	USB_Input_Data, %object
+ 263              		.size	USB_Input_Data, 4
+ 264              	USB_Input_Data:
+ 265 0000 00000000 		.space	4
+ 266              		.type	USB_Output_Data, %object
+ 267              		.size	USB_Output_Data, 2
+ 268              	USB_Output_Data:
+ 269 0004 0000     		.space	2
+ 270              		.text
+ 271              	.Letext0:
+ 272              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.2\\psoc creator\\import\\gnu\\arm\\5.4.
+ 273              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.2\\psoc creator\\import\\gnu\\arm\\5.4.
+ 274              		.file 4 "Generated_Source\\PSoC5/cytypes.h"
+ 275              		.file 5 "Generated_Source\\PSoC5/USBFS_1.h"
+ 276              		.file 6 "Generated_Source\\PSoC5/ButtonReg1.h"
+ 277              		.file 7 "Generated_Source\\PSoC5/ButtonReg2.h"
+ 278              		.file 8 "Generated_Source\\PSoC5/ButtonReg3.h"
+ 279              		.file 9 "Generated_Source\\PSoC5/ButtonReg4.h"
+ 280              		.file 10 "Generated_Source\\PSoC5/core_cm3.h"
+ 281              		.section	.debug_info,"",%progbits
+ 282              	.Ldebug_info0:
+ 283 0000 51030000 		.4byte	0x351
+ 284 0004 0400     		.2byte	0x4
+ 285 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 286 000a 04       		.byte	0x4
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 9
+
+
+ 287 000b 01       		.uleb128 0x1
+ 288 000c 6C000000 		.4byte	.LASF37
+ 289 0010 0C       		.byte	0xc
+ 290 0011 52020000 		.4byte	.LASF38
+ 291 0015 0A010000 		.4byte	.LASF39
+ 292 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 293 001d 00000000 		.4byte	0
+ 294 0021 00000000 		.4byte	.Ldebug_line0
+ 295 0025 02       		.uleb128 0x2
+ 296 0026 01       		.byte	0x1
+ 297 0027 06       		.byte	0x6
+ 298 0028 AE020000 		.4byte	.LASF0
+ 299 002c 02       		.uleb128 0x2
+ 300 002d 01       		.byte	0x1
+ 301 002e 08       		.byte	0x8
+ 302 002f 5E000000 		.4byte	.LASF1
+ 303 0033 02       		.uleb128 0x2
+ 304 0034 02       		.byte	0x2
+ 305 0035 05       		.byte	0x5
+ 306 0036 75020000 		.4byte	.LASF2
+ 307 003a 02       		.uleb128 0x2
+ 308 003b 02       		.byte	0x2
+ 309 003c 07       		.byte	0x7
+ 310 003d 67010000 		.4byte	.LASF3
+ 311 0041 03       		.uleb128 0x3
+ 312 0042 2E000000 		.4byte	.LASF9
+ 313 0046 02       		.byte	0x2
+ 314 0047 3F       		.byte	0x3f
+ 315 0048 4C000000 		.4byte	0x4c
+ 316 004c 02       		.uleb128 0x2
+ 317 004d 04       		.byte	0x4
+ 318 004e 05       		.byte	0x5
+ 319 004f 85020000 		.4byte	.LASF4
+ 320 0053 02       		.uleb128 0x2
+ 321 0054 04       		.byte	0x4
+ 322 0055 07       		.byte	0x7
+ 323 0056 55010000 		.4byte	.LASF5
+ 324 005a 02       		.uleb128 0x2
+ 325 005b 08       		.byte	0x8
+ 326 005c 05       		.byte	0x5
+ 327 005d 44020000 		.4byte	.LASF6
+ 328 0061 02       		.uleb128 0x2
+ 329 0062 08       		.byte	0x8
+ 330 0063 07       		.byte	0x7
+ 331 0064 F6010000 		.4byte	.LASF7
+ 332 0068 04       		.uleb128 0x4
+ 333 0069 04       		.byte	0x4
+ 334 006a 05       		.byte	0x5
+ 335 006b 696E7400 		.ascii	"int\000"
+ 336 006f 02       		.uleb128 0x2
+ 337 0070 04       		.byte	0x4
+ 338 0071 07       		.byte	0x7
+ 339 0072 E9010000 		.4byte	.LASF8
+ 340 0076 03       		.uleb128 0x3
+ 341 0077 1D020000 		.4byte	.LASF10
+ 342 007b 03       		.byte	0x3
+ 343 007c 2C       		.byte	0x2c
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 10
+
+
+ 344 007d 41000000 		.4byte	0x41
+ 345 0081 05       		.uleb128 0x5
+ 346 0082 7F020000 		.4byte	.LASF11
+ 347 0086 04       		.byte	0x4
+ 348 0087 E701     		.2byte	0x1e7
+ 349 0089 2C000000 		.4byte	0x2c
+ 350 008d 05       		.uleb128 0x5
+ 351 008e BF010000 		.4byte	.LASF12
+ 352 0092 04       		.byte	0x4
+ 353 0093 E801     		.2byte	0x1e8
+ 354 0095 3A000000 		.4byte	0x3a
+ 355 0099 05       		.uleb128 0x5
+ 356 009a C6010000 		.4byte	.LASF13
+ 357 009e 04       		.byte	0x4
+ 358 009f EA01     		.2byte	0x1ea
+ 359 00a1 25000000 		.4byte	0x25
+ 360 00a5 02       		.uleb128 0x2
+ 361 00a6 04       		.byte	0x4
+ 362 00a7 04       		.byte	0x4
+ 363 00a8 58000000 		.4byte	.LASF14
+ 364 00ac 02       		.uleb128 0x2
+ 365 00ad 08       		.byte	0x8
+ 366 00ae 04       		.byte	0x4
+ 367 00af B3010000 		.4byte	.LASF15
+ 368 00b3 02       		.uleb128 0x2
+ 369 00b4 01       		.byte	0x1
+ 370 00b5 08       		.byte	0x8
+ 371 00b6 59020000 		.4byte	.LASF16
+ 372 00ba 02       		.uleb128 0x2
+ 373 00bb 08       		.byte	0x8
+ 374 00bc 04       		.byte	0x4
+ 375 00bd A2020000 		.4byte	.LASF17
+ 376 00c1 02       		.uleb128 0x2
+ 377 00c2 04       		.byte	0x4
+ 378 00c3 07       		.byte	0x7
+ 379 00c4 25020000 		.4byte	.LASF18
+ 380 00c8 06       		.uleb128 0x6
+ 381 00c9 BA020000 		.4byte	.LASF19
+ 382 00cd 01       		.byte	0x1
+ 383 00ce 5D       		.byte	0x5d
+ 384 00cf 00000000 		.4byte	.LFB65
+ 385 00d3 50000000 		.4byte	.LFE65-.LFB65
+ 386 00d7 01       		.uleb128 0x1
+ 387 00d8 9C       		.byte	0x9c
+ 388 00d9 3C010000 		.4byte	0x13c
+ 389 00dd 07       		.uleb128 0x7
+ 390 00de 6900     		.ascii	"i\000"
+ 391 00e0 01       		.byte	0x1
+ 392 00e1 5F       		.byte	0x5f
+ 393 00e2 81000000 		.4byte	0x81
+ 394 00e6 00000000 		.4byte	.LLST0
+ 395 00ea 08       		.uleb128 0x8
+ 396 00eb 32000000 		.4byte	.LVL8
+ 397 00ef C8020000 		.4byte	0x2c8
+ 398 00f3 02010000 		.4byte	0x102
+ 399 00f7 09       		.uleb128 0x9
+ 400 00f8 01       		.uleb128 0x1
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 11
+
+
+ 401 00f9 50       		.byte	0x50
+ 402 00fa 01       		.uleb128 0x1
+ 403 00fb 30       		.byte	0x30
+ 404 00fc 09       		.uleb128 0x9
+ 405 00fd 01       		.uleb128 0x1
+ 406 00fe 51       		.byte	0x51
+ 407 00ff 01       		.uleb128 0x1
+ 408 0100 32       		.byte	0x32
+ 409 0101 00       		.byte	0
+ 410 0102 0A       		.uleb128 0xa
+ 411 0103 36000000 		.4byte	.LVL9
+ 412 0107 D4020000 		.4byte	0x2d4
+ 413 010b 08       		.uleb128 0x8
+ 414 010c 44000000 		.4byte	.LVL10
+ 415 0110 E0020000 		.4byte	0x2e0
+ 416 0114 2C010000 		.4byte	0x12c
+ 417 0118 09       		.uleb128 0x9
+ 418 0119 01       		.uleb128 0x1
+ 419 011a 50       		.byte	0x50
+ 420 011b 01       		.uleb128 0x1
+ 421 011c 31       		.byte	0x31
+ 422 011d 09       		.uleb128 0x9
+ 423 011e 01       		.uleb128 0x1
+ 424 011f 51       		.byte	0x51
+ 425 0120 05       		.uleb128 0x5
+ 426 0121 03       		.byte	0x3
+ 427 0122 00000000 		.4byte	.LANCHOR0
+ 428 0126 09       		.uleb128 0x9
+ 429 0127 01       		.uleb128 0x1
+ 430 0128 52       		.byte	0x52
+ 431 0129 01       		.uleb128 0x1
+ 432 012a 34       		.byte	0x34
+ 433 012b 00       		.byte	0
+ 434 012c 0B       		.uleb128 0xb
+ 435 012d 4A000000 		.4byte	.LVL11
+ 436 0131 EC020000 		.4byte	0x2ec
+ 437 0135 09       		.uleb128 0x9
+ 438 0136 01       		.uleb128 0x1
+ 439 0137 50       		.byte	0x50
+ 440 0138 01       		.uleb128 0x1
+ 441 0139 32       		.byte	0x32
+ 442 013a 00       		.byte	0
+ 443 013b 00       		.byte	0
+ 444 013c 06       		.uleb128 0x6
+ 445 013d DE010000 		.4byte	.LASF20
+ 446 0141 01       		.byte	0x1
+ 447 0142 79       		.byte	0x79
+ 448 0143 00000000 		.4byte	.LFB66
+ 449 0147 02000000 		.4byte	.LFE66-.LFB66
+ 450 014b 01       		.uleb128 0x1
+ 451 014c 9C       		.byte	0x9c
+ 452 014d 5C010000 		.4byte	0x15c
+ 453 0151 0C       		.uleb128 0xc
+ 454 0152 6900     		.ascii	"i\000"
+ 455 0154 01       		.byte	0x1
+ 456 0155 7B       		.byte	0x7b
+ 457 0156 81000000 		.4byte	0x81
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 12
+
+
+ 458 015a 00       		.byte	0
+ 459 015b 00       		.byte	0
+ 460 015c 06       		.uleb128 0x6
+ 461 015d 5E020000 		.4byte	.LASF21
+ 462 0161 01       		.byte	0x1
+ 463 0162 8F       		.byte	0x8f
+ 464 0163 00000000 		.4byte	.LFB67
+ 465 0167 24000000 		.4byte	.LFE67-.LFB67
+ 466 016b 01       		.uleb128 0x1
+ 467 016c 9C       		.byte	0x9c
+ 468 016d 96010000 		.4byte	0x196
+ 469 0171 0A       		.uleb128 0xa
+ 470 0172 06000000 		.4byte	.LVL13
+ 471 0176 F8020000 		.4byte	0x2f8
+ 472 017a 0A       		.uleb128 0xa
+ 473 017b 0E000000 		.4byte	.LVL14
+ 474 017f 03030000 		.4byte	0x303
+ 475 0183 0A       		.uleb128 0xa
+ 476 0184 14000000 		.4byte	.LVL15
+ 477 0188 0E030000 		.4byte	0x30e
+ 478 018c 0A       		.uleb128 0xa
+ 479 018d 1A000000 		.4byte	.LVL16
+ 480 0191 19030000 		.4byte	0x319
+ 481 0195 00       		.byte	0
+ 482 0196 0D       		.uleb128 0xd
+ 483 0197 BA010000 		.4byte	.LASF40
+ 484 019b 01       		.byte	0x1
+ 485 019c 3A       		.byte	0x3a
+ 486 019d 68000000 		.4byte	0x68
+ 487 01a1 00000000 		.4byte	.LFB64
+ 488 01a5 50000000 		.4byte	.LFE64-.LFB64
+ 489 01a9 01       		.uleb128 0x1
+ 490 01aa 9C       		.byte	0x9c
+ 491 01ab 64020000 		.4byte	0x264
+ 492 01af 0E       		.uleb128 0xe
+ 493 01b0 7A010000 		.4byte	.LASF22
+ 494 01b4 01       		.byte	0x1
+ 495 01b5 3C       		.byte	0x3c
+ 496 01b6 8D000000 		.4byte	0x8d
+ 497 01ba 40000000 		.4byte	.LLST1
+ 498 01be 0A       		.uleb128 0xa
+ 499 01bf 06000000 		.4byte	.LVL17
+ 500 01c3 C8000000 		.4byte	0xc8
+ 501 01c7 08       		.uleb128 0x8
+ 502 01c8 0C000000 		.4byte	.LVL18
+ 503 01cc 24030000 		.4byte	0x324
+ 504 01d0 DA010000 		.4byte	0x1da
+ 505 01d4 09       		.uleb128 0x9
+ 506 01d5 01       		.uleb128 0x1
+ 507 01d6 50       		.byte	0x50
+ 508 01d7 01       		.uleb128 0x1
+ 509 01d8 31       		.byte	0x31
+ 510 01d9 00       		.byte	0
+ 511 01da 0A       		.uleb128 0xa
+ 512 01db 14000000 		.4byte	.LVL19
+ 513 01df 5C010000 		.4byte	0x15c
+ 514 01e3 08       		.uleb128 0x8
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 13
+
+
+ 515 01e4 1A000000 		.4byte	.LVL20
+ 516 01e8 30030000 		.4byte	0x330
+ 517 01ec F6010000 		.4byte	0x1f6
+ 518 01f0 09       		.uleb128 0x9
+ 519 01f1 01       		.uleb128 0x1
+ 520 01f2 50       		.byte	0x50
+ 521 01f3 01       		.uleb128 0x1
+ 522 01f4 31       		.byte	0x31
+ 523 01f5 00       		.byte	0
+ 524 01f6 08       		.uleb128 0x8
+ 525 01f7 26000000 		.4byte	.LVL21
+ 526 01fb E0020000 		.4byte	0x2e0
+ 527 01ff 12020000 		.4byte	0x212
+ 528 0203 09       		.uleb128 0x9
+ 529 0204 01       		.uleb128 0x1
+ 530 0205 51       		.byte	0x51
+ 531 0206 05       		.uleb128 0x5
+ 532 0207 03       		.byte	0x3
+ 533 0208 00000000 		.4byte	.LANCHOR0
+ 534 020c 09       		.uleb128 0x9
+ 535 020d 01       		.uleb128 0x1
+ 536 020e 52       		.byte	0x52
+ 537 020f 01       		.uleb128 0x1
+ 538 0210 34       		.byte	0x34
+ 539 0211 00       		.byte	0
+ 540 0212 08       		.uleb128 0x8
+ 541 0213 2C000000 		.4byte	.LVL22
+ 542 0217 30030000 		.4byte	0x330
+ 543 021b 25020000 		.4byte	0x225
+ 544 021f 09       		.uleb128 0x9
+ 545 0220 01       		.uleb128 0x1
+ 546 0221 50       		.byte	0x50
+ 547 0222 01       		.uleb128 0x1
+ 548 0223 32       		.byte	0x32
+ 549 0224 00       		.byte	0
+ 550 0225 08       		.uleb128 0x8
+ 551 0226 36000000 		.4byte	.LVL23
+ 552 022a 3C030000 		.4byte	0x33c
+ 553 022e 38020000 		.4byte	0x238
+ 554 0232 09       		.uleb128 0x9
+ 555 0233 01       		.uleb128 0x1
+ 556 0234 50       		.byte	0x50
+ 557 0235 01       		.uleb128 0x1
+ 558 0236 32       		.byte	0x32
+ 559 0237 00       		.byte	0
+ 560 0238 08       		.uleb128 0x8
+ 561 0239 40000000 		.4byte	.LVL25
+ 562 023d 48030000 		.4byte	0x348
+ 563 0241 54020000 		.4byte	0x254
+ 564 0245 09       		.uleb128 0x9
+ 565 0246 01       		.uleb128 0x1
+ 566 0247 50       		.byte	0x50
+ 567 0248 01       		.uleb128 0x1
+ 568 0249 32       		.byte	0x32
+ 569 024a 09       		.uleb128 0x9
+ 570 024b 01       		.uleb128 0x1
+ 571 024c 51       		.byte	0x51
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 14
+
+
+ 572 024d 05       		.uleb128 0x5
+ 573 024e 03       		.byte	0x3
+ 574 024f 04000000 		.4byte	.LANCHOR0+4
+ 575 0253 00       		.byte	0
+ 576 0254 0B       		.uleb128 0xb
+ 577 0255 46000000 		.4byte	.LVL26
+ 578 0259 EC020000 		.4byte	0x2ec
+ 579 025d 09       		.uleb128 0x9
+ 580 025e 01       		.uleb128 0x1
+ 581 025f 50       		.byte	0x50
+ 582 0260 01       		.uleb128 0x1
+ 583 0261 32       		.byte	0x32
+ 584 0262 00       		.byte	0
+ 585 0263 00       		.byte	0
+ 586 0264 0F       		.uleb128 0xf
+ 587 0265 6A020000 		.4byte	.LASF41
+ 588 0269 01       		.byte	0x1
+ 589 026a 9A       		.byte	0x9a
+ 590 026b 00000000 		.4byte	.LFB68
+ 591 026f 02000000 		.4byte	.LFE68-.LFB68
+ 592 0273 01       		.uleb128 0x1
+ 593 0274 9C       		.byte	0x9c
+ 594 0275 10       		.uleb128 0x10
+ 595 0276 99000000 		.4byte	0x99
+ 596 027a 85020000 		.4byte	0x285
+ 597 027e 11       		.uleb128 0x11
+ 598 027f C1000000 		.4byte	0xc1
+ 599 0283 03       		.byte	0x3
+ 600 0284 00       		.byte	0
+ 601 0285 12       		.uleb128 0x12
+ 602 0286 38000000 		.4byte	.LASF23
+ 603 028a 01       		.byte	0x1
+ 604 028b 37       		.byte	0x37
+ 605 028c 75020000 		.4byte	0x275
+ 606 0290 05       		.uleb128 0x5
+ 607 0291 03       		.byte	0x3
+ 608 0292 00000000 		.4byte	USB_Input_Data
+ 609 0296 10       		.uleb128 0x10
+ 610 0297 81000000 		.4byte	0x81
+ 611 029b A6020000 		.4byte	0x2a6
+ 612 029f 11       		.uleb128 0x11
+ 613 02a0 C1000000 		.4byte	0xc1
+ 614 02a4 01       		.byte	0x1
+ 615 02a5 00       		.byte	0
+ 616 02a6 12       		.uleb128 0x12
+ 617 02a7 90010000 		.4byte	.LASF24
+ 618 02ab 01       		.byte	0x1
+ 619 02ac 38       		.byte	0x38
+ 620 02ad 96020000 		.4byte	0x296
+ 621 02b1 05       		.uleb128 0x5
+ 622 02b2 03       		.byte	0x3
+ 623 02b3 04000000 		.4byte	USB_Output_Data
+ 624 02b7 13       		.uleb128 0x13
+ 625 02b8 83010000 		.4byte	.LASF42
+ 626 02bc 0A       		.byte	0xa
+ 627 02bd 1207     		.2byte	0x712
+ 628 02bf C3020000 		.4byte	0x2c3
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 15
+
+
+ 629 02c3 14       		.uleb128 0x14
+ 630 02c4 76000000 		.4byte	0x76
+ 631 02c8 15       		.uleb128 0x15
+ 632 02c9 10000000 		.4byte	.LASF25
+ 633 02cd 10000000 		.4byte	.LASF25
+ 634 02d1 05       		.byte	0x5
+ 635 02d2 2F01     		.2byte	0x12f
+ 636 02d4 15       		.uleb128 0x15
+ 637 02d5 C2020000 		.4byte	.LASF26
+ 638 02d9 C2020000 		.4byte	.LASF26
+ 639 02dd 05       		.byte	0x5
+ 640 02de 3201     		.2byte	0x132
+ 641 02e0 15       		.uleb128 0x15
+ 642 02e1 47000000 		.4byte	.LASF27
+ 643 02e5 47000000 		.4byte	.LASF27
+ 644 02e9 05       		.byte	0x5
+ 645 02ea 3701     		.2byte	0x137
+ 646 02ec 15       		.uleb128 0x15
+ 647 02ed 8E020000 		.4byte	.LASF28
+ 648 02f1 8E020000 		.4byte	.LASF28
+ 649 02f5 05       		.byte	0x5
+ 650 02f6 3B01     		.2byte	0x13b
+ 651 02f8 16       		.uleb128 0x16
+ 652 02f9 1E000000 		.4byte	.LASF29
+ 653 02fd 1E000000 		.4byte	.LASF29
+ 654 0301 06       		.byte	0x6
+ 655 0302 30       		.byte	0x30
+ 656 0303 16       		.uleb128 0x16
+ 657 0304 FA000000 		.4byte	.LASF30
+ 658 0308 FA000000 		.4byte	.LASF30
+ 659 030c 07       		.byte	0x7
+ 660 030d 30       		.byte	0x30
+ 661 030e 16       		.uleb128 0x16
+ 662 030f 0D020000 		.4byte	.LASF31
+ 663 0313 0D020000 		.4byte	.LASF31
+ 664 0317 08       		.byte	0x8
+ 665 0318 30       		.byte	0x30
+ 666 0319 16       		.uleb128 0x16
+ 667 031a 00000000 		.4byte	.LASF32
+ 668 031e 00000000 		.4byte	.LASF32
+ 669 0322 09       		.byte	0x9
+ 670 0323 30       		.byte	0x30
+ 671 0324 15       		.uleb128 0x15
+ 672 0325 2E020000 		.4byte	.LASF33
+ 673 0329 2E020000 		.4byte	.LASF33
+ 674 032d 05       		.byte	0x5
+ 675 032e 3E01     		.2byte	0x13e
+ 676 0330 15       		.uleb128 0x15
+ 677 0331 CB010000 		.4byte	.LASF34
+ 678 0335 CB010000 		.4byte	.LASF34
+ 679 0339 05       		.byte	0x5
+ 680 033a 3501     		.2byte	0x135
+ 681 033c 15       		.uleb128 0x15
+ 682 033d A0010000 		.4byte	.LASF35
+ 683 0341 A0010000 		.4byte	.LASF35
+ 684 0345 05       		.byte	0x5
+ 685 0346 3601     		.2byte	0x136
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 16
+
+
+ 686 0348 15       		.uleb128 0x15
+ 687 0349 DB020000 		.4byte	.LASF36
+ 688 034d DB020000 		.4byte	.LASF36
+ 689 0351 05       		.byte	0x5
+ 690 0352 3901     		.2byte	0x139
+ 691 0354 00       		.byte	0
+ 692              		.section	.debug_abbrev,"",%progbits
+ 693              	.Ldebug_abbrev0:
+ 694 0000 01       		.uleb128 0x1
+ 695 0001 11       		.uleb128 0x11
+ 696 0002 01       		.byte	0x1
+ 697 0003 25       		.uleb128 0x25
+ 698 0004 0E       		.uleb128 0xe
+ 699 0005 13       		.uleb128 0x13
+ 700 0006 0B       		.uleb128 0xb
+ 701 0007 03       		.uleb128 0x3
+ 702 0008 0E       		.uleb128 0xe
+ 703 0009 1B       		.uleb128 0x1b
+ 704 000a 0E       		.uleb128 0xe
+ 705 000b 55       		.uleb128 0x55
+ 706 000c 17       		.uleb128 0x17
+ 707 000d 11       		.uleb128 0x11
+ 708 000e 01       		.uleb128 0x1
+ 709 000f 10       		.uleb128 0x10
+ 710 0010 17       		.uleb128 0x17
+ 711 0011 00       		.byte	0
+ 712 0012 00       		.byte	0
+ 713 0013 02       		.uleb128 0x2
+ 714 0014 24       		.uleb128 0x24
+ 715 0015 00       		.byte	0
+ 716 0016 0B       		.uleb128 0xb
+ 717 0017 0B       		.uleb128 0xb
+ 718 0018 3E       		.uleb128 0x3e
+ 719 0019 0B       		.uleb128 0xb
+ 720 001a 03       		.uleb128 0x3
+ 721 001b 0E       		.uleb128 0xe
+ 722 001c 00       		.byte	0
+ 723 001d 00       		.byte	0
+ 724 001e 03       		.uleb128 0x3
+ 725 001f 16       		.uleb128 0x16
+ 726 0020 00       		.byte	0
+ 727 0021 03       		.uleb128 0x3
+ 728 0022 0E       		.uleb128 0xe
+ 729 0023 3A       		.uleb128 0x3a
+ 730 0024 0B       		.uleb128 0xb
+ 731 0025 3B       		.uleb128 0x3b
+ 732 0026 0B       		.uleb128 0xb
+ 733 0027 49       		.uleb128 0x49
+ 734 0028 13       		.uleb128 0x13
+ 735 0029 00       		.byte	0
+ 736 002a 00       		.byte	0
+ 737 002b 04       		.uleb128 0x4
+ 738 002c 24       		.uleb128 0x24
+ 739 002d 00       		.byte	0
+ 740 002e 0B       		.uleb128 0xb
+ 741 002f 0B       		.uleb128 0xb
+ 742 0030 3E       		.uleb128 0x3e
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 17
+
+
+ 743 0031 0B       		.uleb128 0xb
+ 744 0032 03       		.uleb128 0x3
+ 745 0033 08       		.uleb128 0x8
+ 746 0034 00       		.byte	0
+ 747 0035 00       		.byte	0
+ 748 0036 05       		.uleb128 0x5
+ 749 0037 16       		.uleb128 0x16
+ 750 0038 00       		.byte	0
+ 751 0039 03       		.uleb128 0x3
+ 752 003a 0E       		.uleb128 0xe
+ 753 003b 3A       		.uleb128 0x3a
+ 754 003c 0B       		.uleb128 0xb
+ 755 003d 3B       		.uleb128 0x3b
+ 756 003e 05       		.uleb128 0x5
+ 757 003f 49       		.uleb128 0x49
+ 758 0040 13       		.uleb128 0x13
+ 759 0041 00       		.byte	0
+ 760 0042 00       		.byte	0
+ 761 0043 06       		.uleb128 0x6
+ 762 0044 2E       		.uleb128 0x2e
+ 763 0045 01       		.byte	0x1
+ 764 0046 3F       		.uleb128 0x3f
+ 765 0047 19       		.uleb128 0x19
+ 766 0048 03       		.uleb128 0x3
+ 767 0049 0E       		.uleb128 0xe
+ 768 004a 3A       		.uleb128 0x3a
+ 769 004b 0B       		.uleb128 0xb
+ 770 004c 3B       		.uleb128 0x3b
+ 771 004d 0B       		.uleb128 0xb
+ 772 004e 27       		.uleb128 0x27
+ 773 004f 19       		.uleb128 0x19
+ 774 0050 11       		.uleb128 0x11
+ 775 0051 01       		.uleb128 0x1
+ 776 0052 12       		.uleb128 0x12
+ 777 0053 06       		.uleb128 0x6
+ 778 0054 40       		.uleb128 0x40
+ 779 0055 18       		.uleb128 0x18
+ 780 0056 9742     		.uleb128 0x2117
+ 781 0058 19       		.uleb128 0x19
+ 782 0059 01       		.uleb128 0x1
+ 783 005a 13       		.uleb128 0x13
+ 784 005b 00       		.byte	0
+ 785 005c 00       		.byte	0
+ 786 005d 07       		.uleb128 0x7
+ 787 005e 34       		.uleb128 0x34
+ 788 005f 00       		.byte	0
+ 789 0060 03       		.uleb128 0x3
+ 790 0061 08       		.uleb128 0x8
+ 791 0062 3A       		.uleb128 0x3a
+ 792 0063 0B       		.uleb128 0xb
+ 793 0064 3B       		.uleb128 0x3b
+ 794 0065 0B       		.uleb128 0xb
+ 795 0066 49       		.uleb128 0x49
+ 796 0067 13       		.uleb128 0x13
+ 797 0068 02       		.uleb128 0x2
+ 798 0069 17       		.uleb128 0x17
+ 799 006a 00       		.byte	0
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 18
+
+
+ 800 006b 00       		.byte	0
+ 801 006c 08       		.uleb128 0x8
+ 802 006d 898201   		.uleb128 0x4109
+ 803 0070 01       		.byte	0x1
+ 804 0071 11       		.uleb128 0x11
+ 805 0072 01       		.uleb128 0x1
+ 806 0073 31       		.uleb128 0x31
+ 807 0074 13       		.uleb128 0x13
+ 808 0075 01       		.uleb128 0x1
+ 809 0076 13       		.uleb128 0x13
+ 810 0077 00       		.byte	0
+ 811 0078 00       		.byte	0
+ 812 0079 09       		.uleb128 0x9
+ 813 007a 8A8201   		.uleb128 0x410a
+ 814 007d 00       		.byte	0
+ 815 007e 02       		.uleb128 0x2
+ 816 007f 18       		.uleb128 0x18
+ 817 0080 9142     		.uleb128 0x2111
+ 818 0082 18       		.uleb128 0x18
+ 819 0083 00       		.byte	0
+ 820 0084 00       		.byte	0
+ 821 0085 0A       		.uleb128 0xa
+ 822 0086 898201   		.uleb128 0x4109
+ 823 0089 00       		.byte	0
+ 824 008a 11       		.uleb128 0x11
+ 825 008b 01       		.uleb128 0x1
+ 826 008c 31       		.uleb128 0x31
+ 827 008d 13       		.uleb128 0x13
+ 828 008e 00       		.byte	0
+ 829 008f 00       		.byte	0
+ 830 0090 0B       		.uleb128 0xb
+ 831 0091 898201   		.uleb128 0x4109
+ 832 0094 01       		.byte	0x1
+ 833 0095 11       		.uleb128 0x11
+ 834 0096 01       		.uleb128 0x1
+ 835 0097 31       		.uleb128 0x31
+ 836 0098 13       		.uleb128 0x13
+ 837 0099 00       		.byte	0
+ 838 009a 00       		.byte	0
+ 839 009b 0C       		.uleb128 0xc
+ 840 009c 34       		.uleb128 0x34
+ 841 009d 00       		.byte	0
+ 842 009e 03       		.uleb128 0x3
+ 843 009f 08       		.uleb128 0x8
+ 844 00a0 3A       		.uleb128 0x3a
+ 845 00a1 0B       		.uleb128 0xb
+ 846 00a2 3B       		.uleb128 0x3b
+ 847 00a3 0B       		.uleb128 0xb
+ 848 00a4 49       		.uleb128 0x49
+ 849 00a5 13       		.uleb128 0x13
+ 850 00a6 1C       		.uleb128 0x1c
+ 851 00a7 0B       		.uleb128 0xb
+ 852 00a8 00       		.byte	0
+ 853 00a9 00       		.byte	0
+ 854 00aa 0D       		.uleb128 0xd
+ 855 00ab 2E       		.uleb128 0x2e
+ 856 00ac 01       		.byte	0x1
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 19
+
+
+ 857 00ad 3F       		.uleb128 0x3f
+ 858 00ae 19       		.uleb128 0x19
+ 859 00af 03       		.uleb128 0x3
+ 860 00b0 0E       		.uleb128 0xe
+ 861 00b1 3A       		.uleb128 0x3a
+ 862 00b2 0B       		.uleb128 0xb
+ 863 00b3 3B       		.uleb128 0x3b
+ 864 00b4 0B       		.uleb128 0xb
+ 865 00b5 49       		.uleb128 0x49
+ 866 00b6 13       		.uleb128 0x13
+ 867 00b7 8701     		.uleb128 0x87
+ 868 00b9 19       		.uleb128 0x19
+ 869 00ba 11       		.uleb128 0x11
+ 870 00bb 01       		.uleb128 0x1
+ 871 00bc 12       		.uleb128 0x12
+ 872 00bd 06       		.uleb128 0x6
+ 873 00be 40       		.uleb128 0x40
+ 874 00bf 18       		.uleb128 0x18
+ 875 00c0 9742     		.uleb128 0x2117
+ 876 00c2 19       		.uleb128 0x19
+ 877 00c3 01       		.uleb128 0x1
+ 878 00c4 13       		.uleb128 0x13
+ 879 00c5 00       		.byte	0
+ 880 00c6 00       		.byte	0
+ 881 00c7 0E       		.uleb128 0xe
+ 882 00c8 34       		.uleb128 0x34
+ 883 00c9 00       		.byte	0
+ 884 00ca 03       		.uleb128 0x3
+ 885 00cb 0E       		.uleb128 0xe
+ 886 00cc 3A       		.uleb128 0x3a
+ 887 00cd 0B       		.uleb128 0xb
+ 888 00ce 3B       		.uleb128 0x3b
+ 889 00cf 0B       		.uleb128 0xb
+ 890 00d0 49       		.uleb128 0x49
+ 891 00d1 13       		.uleb128 0x13
+ 892 00d2 02       		.uleb128 0x2
+ 893 00d3 17       		.uleb128 0x17
+ 894 00d4 00       		.byte	0
+ 895 00d5 00       		.byte	0
+ 896 00d6 0F       		.uleb128 0xf
+ 897 00d7 2E       		.uleb128 0x2e
+ 898 00d8 00       		.byte	0
+ 899 00d9 3F       		.uleb128 0x3f
+ 900 00da 19       		.uleb128 0x19
+ 901 00db 03       		.uleb128 0x3
+ 902 00dc 0E       		.uleb128 0xe
+ 903 00dd 3A       		.uleb128 0x3a
+ 904 00de 0B       		.uleb128 0xb
+ 905 00df 3B       		.uleb128 0x3b
+ 906 00e0 0B       		.uleb128 0xb
+ 907 00e1 27       		.uleb128 0x27
+ 908 00e2 19       		.uleb128 0x19
+ 909 00e3 11       		.uleb128 0x11
+ 910 00e4 01       		.uleb128 0x1
+ 911 00e5 12       		.uleb128 0x12
+ 912 00e6 06       		.uleb128 0x6
+ 913 00e7 40       		.uleb128 0x40
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 20
+
+
+ 914 00e8 18       		.uleb128 0x18
+ 915 00e9 9742     		.uleb128 0x2117
+ 916 00eb 19       		.uleb128 0x19
+ 917 00ec 00       		.byte	0
+ 918 00ed 00       		.byte	0
+ 919 00ee 10       		.uleb128 0x10
+ 920 00ef 01       		.uleb128 0x1
+ 921 00f0 01       		.byte	0x1
+ 922 00f1 49       		.uleb128 0x49
+ 923 00f2 13       		.uleb128 0x13
+ 924 00f3 01       		.uleb128 0x1
+ 925 00f4 13       		.uleb128 0x13
+ 926 00f5 00       		.byte	0
+ 927 00f6 00       		.byte	0
+ 928 00f7 11       		.uleb128 0x11
+ 929 00f8 21       		.uleb128 0x21
+ 930 00f9 00       		.byte	0
+ 931 00fa 49       		.uleb128 0x49
+ 932 00fb 13       		.uleb128 0x13
+ 933 00fc 2F       		.uleb128 0x2f
+ 934 00fd 0B       		.uleb128 0xb
+ 935 00fe 00       		.byte	0
+ 936 00ff 00       		.byte	0
+ 937 0100 12       		.uleb128 0x12
+ 938 0101 34       		.uleb128 0x34
+ 939 0102 00       		.byte	0
+ 940 0103 03       		.uleb128 0x3
+ 941 0104 0E       		.uleb128 0xe
+ 942 0105 3A       		.uleb128 0x3a
+ 943 0106 0B       		.uleb128 0xb
+ 944 0107 3B       		.uleb128 0x3b
+ 945 0108 0B       		.uleb128 0xb
+ 946 0109 49       		.uleb128 0x49
+ 947 010a 13       		.uleb128 0x13
+ 948 010b 02       		.uleb128 0x2
+ 949 010c 18       		.uleb128 0x18
+ 950 010d 00       		.byte	0
+ 951 010e 00       		.byte	0
+ 952 010f 13       		.uleb128 0x13
+ 953 0110 34       		.uleb128 0x34
+ 954 0111 00       		.byte	0
+ 955 0112 03       		.uleb128 0x3
+ 956 0113 0E       		.uleb128 0xe
+ 957 0114 3A       		.uleb128 0x3a
+ 958 0115 0B       		.uleb128 0xb
+ 959 0116 3B       		.uleb128 0x3b
+ 960 0117 05       		.uleb128 0x5
+ 961 0118 49       		.uleb128 0x49
+ 962 0119 13       		.uleb128 0x13
+ 963 011a 3F       		.uleb128 0x3f
+ 964 011b 19       		.uleb128 0x19
+ 965 011c 3C       		.uleb128 0x3c
+ 966 011d 19       		.uleb128 0x19
+ 967 011e 00       		.byte	0
+ 968 011f 00       		.byte	0
+ 969 0120 14       		.uleb128 0x14
+ 970 0121 35       		.uleb128 0x35
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 21
+
+
+ 971 0122 00       		.byte	0
+ 972 0123 49       		.uleb128 0x49
+ 973 0124 13       		.uleb128 0x13
+ 974 0125 00       		.byte	0
+ 975 0126 00       		.byte	0
+ 976 0127 15       		.uleb128 0x15
+ 977 0128 2E       		.uleb128 0x2e
+ 978 0129 00       		.byte	0
+ 979 012a 3F       		.uleb128 0x3f
+ 980 012b 19       		.uleb128 0x19
+ 981 012c 3C       		.uleb128 0x3c
+ 982 012d 19       		.uleb128 0x19
+ 983 012e 6E       		.uleb128 0x6e
+ 984 012f 0E       		.uleb128 0xe
+ 985 0130 03       		.uleb128 0x3
+ 986 0131 0E       		.uleb128 0xe
+ 987 0132 3A       		.uleb128 0x3a
+ 988 0133 0B       		.uleb128 0xb
+ 989 0134 3B       		.uleb128 0x3b
+ 990 0135 05       		.uleb128 0x5
+ 991 0136 00       		.byte	0
+ 992 0137 00       		.byte	0
+ 993 0138 16       		.uleb128 0x16
+ 994 0139 2E       		.uleb128 0x2e
+ 995 013a 00       		.byte	0
+ 996 013b 3F       		.uleb128 0x3f
+ 997 013c 19       		.uleb128 0x19
+ 998 013d 3C       		.uleb128 0x3c
+ 999 013e 19       		.uleb128 0x19
+ 1000 013f 6E       		.uleb128 0x6e
+ 1001 0140 0E       		.uleb128 0xe
+ 1002 0141 03       		.uleb128 0x3
+ 1003 0142 0E       		.uleb128 0xe
+ 1004 0143 3A       		.uleb128 0x3a
+ 1005 0144 0B       		.uleb128 0xb
+ 1006 0145 3B       		.uleb128 0x3b
+ 1007 0146 0B       		.uleb128 0xb
+ 1008 0147 00       		.byte	0
+ 1009 0148 00       		.byte	0
+ 1010 0149 00       		.byte	0
+ 1011              		.section	.debug_loc,"",%progbits
+ 1012              	.Ldebug_loc0:
+ 1013              	.LLST0:
+ 1014 0000 02000000 		.4byte	.LVL0
+ 1015 0004 06000000 		.4byte	.LVL1
+ 1016 0008 0200     		.2byte	0x2
+ 1017 000a 30       		.byte	0x30
+ 1018 000b 9F       		.byte	0x9f
+ 1019 000c 06000000 		.4byte	.LVL1
+ 1020 0010 0E000000 		.4byte	.LVL2
+ 1021 0014 0100     		.2byte	0x1
+ 1022 0016 53       		.byte	0x53
+ 1023 0017 10000000 		.4byte	.LVL3
+ 1024 001b 16000000 		.4byte	.LVL4
+ 1025 001f 0100     		.2byte	0x1
+ 1026 0021 53       		.byte	0x53
+ 1027 0022 18000000 		.4byte	.LVL5
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 22
+
+
+ 1028 0026 22000000 		.4byte	.LVL6
+ 1029 002a 0100     		.2byte	0x1
+ 1030 002c 53       		.byte	0x53
+ 1031 002d 24000000 		.4byte	.LVL7
+ 1032 0031 31000000 		.4byte	.LVL8-1
+ 1033 0035 0100     		.2byte	0x1
+ 1034 0037 53       		.byte	0x53
+ 1035 0038 00000000 		.4byte	0
+ 1036 003c 00000000 		.4byte	0
+ 1037              	.LLST1:
+ 1038 0040 36000000 		.4byte	.LVL23
+ 1039 0044 3C000000 		.4byte	.LVL24
+ 1040 0048 0100     		.2byte	0x1
+ 1041 004a 50       		.byte	0x50
+ 1042 004b 00000000 		.4byte	0
+ 1043 004f 00000000 		.4byte	0
+ 1044              		.section	.debug_aranges,"",%progbits
+ 1045 0000 3C000000 		.4byte	0x3c
+ 1046 0004 0200     		.2byte	0x2
+ 1047 0006 00000000 		.4byte	.Ldebug_info0
+ 1048 000a 04       		.byte	0x4
+ 1049 000b 00       		.byte	0
+ 1050 000c 0000     		.2byte	0
+ 1051 000e 0000     		.2byte	0
+ 1052 0010 00000000 		.4byte	.LFB65
+ 1053 0014 50000000 		.4byte	.LFE65-.LFB65
+ 1054 0018 00000000 		.4byte	.LFB66
+ 1055 001c 02000000 		.4byte	.LFE66-.LFB66
+ 1056 0020 00000000 		.4byte	.LFB67
+ 1057 0024 24000000 		.4byte	.LFE67-.LFB67
+ 1058 0028 00000000 		.4byte	.LFB64
+ 1059 002c 50000000 		.4byte	.LFE64-.LFB64
+ 1060 0030 00000000 		.4byte	.LFB68
+ 1061 0034 02000000 		.4byte	.LFE68-.LFB68
+ 1062 0038 00000000 		.4byte	0
+ 1063 003c 00000000 		.4byte	0
+ 1064              		.section	.debug_ranges,"",%progbits
+ 1065              	.Ldebug_ranges0:
+ 1066 0000 00000000 		.4byte	.LFB65
+ 1067 0004 50000000 		.4byte	.LFE65
+ 1068 0008 00000000 		.4byte	.LFB66
+ 1069 000c 02000000 		.4byte	.LFE66
+ 1070 0010 00000000 		.4byte	.LFB67
+ 1071 0014 24000000 		.4byte	.LFE67
+ 1072 0018 00000000 		.4byte	.LFB64
+ 1073 001c 50000000 		.4byte	.LFE64
+ 1074 0020 00000000 		.4byte	.LFB68
+ 1075 0024 02000000 		.4byte	.LFE68
+ 1076 0028 00000000 		.4byte	0
+ 1077 002c 00000000 		.4byte	0
+ 1078              		.section	.debug_line,"",%progbits
+ 1079              	.Ldebug_line0:
+ 1080 0000 2D020000 		.section	.debug_str,"MS",%progbits,1
+ 1080      02009901 
+ 1080      00000201 
+ 1080      FB0E0D00 
+ 1080      01010101 
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 23
+
+
+ 1081              	.LASF32:
+ 1082 0000 42757474 		.ascii	"ButtonReg4_Read\000"
+ 1082      6F6E5265 
+ 1082      67345F52 
+ 1082      65616400 
+ 1083              	.LASF25:
+ 1084 0010 55534246 		.ascii	"USBFS_1_Start\000"
+ 1084      535F315F 
+ 1084      53746172 
+ 1084      7400
+ 1085              	.LASF29:
+ 1086 001e 42757474 		.ascii	"ButtonReg1_Read\000"
+ 1086      6F6E5265 
+ 1086      67315F52 
+ 1086      65616400 
+ 1087              	.LASF9:
+ 1088 002e 5F5F696E 		.ascii	"__int32_t\000"
+ 1088      7433325F 
+ 1088      7400
+ 1089              	.LASF23:
+ 1090 0038 5553425F 		.ascii	"USB_Input_Data\000"
+ 1090      496E7075 
+ 1090      745F4461 
+ 1090      746100
+ 1091              	.LASF27:
+ 1092 0047 55534246 		.ascii	"USBFS_1_LoadInEP\000"
+ 1092      535F315F 
+ 1092      4C6F6164 
+ 1092      496E4550 
+ 1092      00
+ 1093              	.LASF14:
+ 1094 0058 666C6F61 		.ascii	"float\000"
+ 1094      7400
+ 1095              	.LASF1:
+ 1096 005e 756E7369 		.ascii	"unsigned char\000"
+ 1096      676E6564 
+ 1096      20636861 
+ 1096      7200
+ 1097              	.LASF37:
+ 1098 006c 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1098      43313120 
+ 1098      352E342E 
+ 1098      31203230 
+ 1098      31363036 
+ 1099 009f 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1099      20726576 
+ 1099      6973696F 
+ 1099      6E203233 
+ 1099      37373135 
+ 1100 00d2 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1100      66756E63 
+ 1100      74696F6E 
+ 1100      2D736563 
+ 1100      74696F6E 
+ 1101              	.LASF30:
+ 1102 00fa 42757474 		.ascii	"ButtonReg2_Read\000"
+ 1102      6F6E5265 
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 24
+
+
+ 1102      67325F52 
+ 1102      65616400 
+ 1103              	.LASF39:
+ 1104 010a 433A5C55 		.ascii	"C:\\Users\\billy\\Documents\\PSoC Creator\\PSoC-5LP"
+ 1104      73657273 
+ 1104      5C62696C 
+ 1104      6C795C44 
+ 1104      6F63756D 
+ 1105 0138 2D47616D 		.ascii	"-Gamepad\\CyController1.cydsn\000"
+ 1105      65706164 
+ 1105      5C437943 
+ 1105      6F6E7472 
+ 1105      6F6C6C65 
+ 1106              	.LASF5:
+ 1107 0155 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1107      20756E73 
+ 1107      69676E65 
+ 1107      6420696E 
+ 1107      7400
+ 1108              	.LASF3:
+ 1109 0167 73686F72 		.ascii	"short unsigned int\000"
+ 1109      7420756E 
+ 1109      7369676E 
+ 1109      65642069 
+ 1109      6E7400
+ 1110              	.LASF22:
+ 1111 017a 6F757443 		.ascii	"outCount\000"
+ 1111      6F756E74 
+ 1111      00
+ 1112              	.LASF42:
+ 1113 0183 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1113      52784275 
+ 1113      66666572 
+ 1113      00
+ 1114              	.LASF24:
+ 1115 0190 5553425F 		.ascii	"USB_Output_Data\000"
+ 1115      4F757470 
+ 1115      75745F44 
+ 1115      61746100 
+ 1116              	.LASF35:
+ 1117 01a0 55534246 		.ascii	"USBFS_1_GetEPCount\000"
+ 1117      535F315F 
+ 1117      47657445 
+ 1117      50436F75 
+ 1117      6E7400
+ 1118              	.LASF15:
+ 1119 01b3 646F7562 		.ascii	"double\000"
+ 1119      6C6500
+ 1120              	.LASF40:
+ 1121 01ba 6D61696E 		.ascii	"main\000"
+ 1121      00
+ 1122              	.LASF12:
+ 1123 01bf 75696E74 		.ascii	"uint16\000"
+ 1123      313600
+ 1124              	.LASF13:
+ 1125 01c6 696E7438 		.ascii	"int8\000"
+ 1125      00
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 25
+
+
+ 1126              	.LASF34:
+ 1127 01cb 55534246 		.ascii	"USBFS_1_GetEPState\000"
+ 1127      535F315F 
+ 1127      47657445 
+ 1127      50537461 
+ 1127      746500
+ 1128              	.LASF20:
+ 1129 01de 52656164 		.ascii	"ReadAnalog\000"
+ 1129      416E616C 
+ 1129      6F6700
+ 1130              	.LASF8:
+ 1131 01e9 756E7369 		.ascii	"unsigned int\000"
+ 1131      676E6564 
+ 1131      20696E74 
+ 1131      00
+ 1132              	.LASF7:
+ 1133 01f6 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1133      206C6F6E 
+ 1133      6720756E 
+ 1133      7369676E 
+ 1133      65642069 
+ 1134              	.LASF31:
+ 1135 020d 42757474 		.ascii	"ButtonReg3_Read\000"
+ 1135      6F6E5265 
+ 1135      67335F52 
+ 1135      65616400 
+ 1136              	.LASF10:
+ 1137 021d 696E7433 		.ascii	"int32_t\000"
+ 1137      325F7400 
+ 1138              	.LASF18:
+ 1139 0225 73697A65 		.ascii	"sizetype\000"
+ 1139      74797065 
+ 1139      00
+ 1140              	.LASF33:
+ 1141 022e 55534246 		.ascii	"USBFS_1_GetEPAckState\000"
+ 1141      535F315F 
+ 1141      47657445 
+ 1141      5041636B 
+ 1141      53746174 
+ 1142              	.LASF6:
+ 1143 0244 6C6F6E67 		.ascii	"long long int\000"
+ 1143      206C6F6E 
+ 1143      6720696E 
+ 1143      7400
+ 1144              	.LASF38:
+ 1145 0252 6D61696E 		.ascii	"main.c\000"
+ 1145      2E6300
+ 1146              	.LASF16:
+ 1147 0259 63686172 		.ascii	"char\000"
+ 1147      00
+ 1148              	.LASF21:
+ 1149 025e 52656164 		.ascii	"ReadButtons\000"
+ 1149      42757474 
+ 1149      6F6E7300 
+ 1150              	.LASF41:
+ 1151 026a 5365744F 		.ascii	"SetOutputs\000"
+ 1151      75747075 
+ARM GAS  C:\Users\billy\AppData\Local\Temp\ccEczQZR.s 			page 26
+
+
+ 1151      747300
+ 1152              	.LASF2:
+ 1153 0275 73686F72 		.ascii	"short int\000"
+ 1153      7420696E 
+ 1153      7400
+ 1154              	.LASF11:
+ 1155 027f 75696E74 		.ascii	"uint8\000"
+ 1155      3800
+ 1156              	.LASF4:
+ 1157 0285 6C6F6E67 		.ascii	"long int\000"
+ 1157      20696E74 
+ 1157      00
+ 1158              	.LASF28:
+ 1159 028e 55534246 		.ascii	"USBFS_1_EnableOutEP\000"
+ 1159      535F315F 
+ 1159      456E6162 
+ 1159      6C654F75 
+ 1159      74455000 
+ 1160              	.LASF17:
+ 1161 02a2 6C6F6E67 		.ascii	"long double\000"
+ 1161      20646F75 
+ 1161      626C6500 
+ 1162              	.LASF0:
+ 1163 02ae 7369676E 		.ascii	"signed char\000"
+ 1163      65642063 
+ 1163      68617200 
+ 1164              	.LASF19:
+ 1165 02ba 53746172 		.ascii	"StartUp\000"
+ 1165      74557000 
+ 1166              	.LASF26:
+ 1167 02c2 55534246 		.ascii	"USBFS_1_GetConfiguration\000"
+ 1167      535F315F 
+ 1167      47657443 
+ 1167      6F6E6669 
+ 1167      67757261 
+ 1168              	.LASF36:
+ 1169 02db 55534246 		.ascii	"USBFS_1_ReadOutEP\000"
+ 1169      535F315F 
+ 1169      52656164 
+ 1169      4F757445 
+ 1169      5000
+ 1170              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

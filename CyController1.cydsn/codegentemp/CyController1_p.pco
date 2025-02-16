@@ -1,0 +1,119 @@
+dont_use_io iocell 1 0
+dont_use_io iocell 1 1
+set_location "Net_939_7" macrocell 3 0 0 1
+set_location "DB_31_36_out_1" macrocell 3 2 1 1
+set_location "Net_938_7" macrocell 1 2 0 3
+set_location "Net_938_2" macrocell 1 2 0 1
+set_location "Net_939_2" macrocell 3 0 0 2
+set_location "DB_25_30_out_4" macrocell 2 1 0 2
+set_location "DB_37_42_out_0" macrocell 3 1 0 0
+set_location "Net_938_4" macrocell 0 2 1 0
+set_location "Net_938_5" macrocell 1 2 1 0
+set_location "DB_25_30_out_5" macrocell 2 1 0 0
+set_location "DB_37_42_out_2" macrocell 2 1 1 3
+set_location "Net_938_3" macrocell 0 2 0 3
+set_location "DB_25_30_out_3" macrocell 2 1 1 2
+set_location "Net_909_3" macrocell 3 4 0 0
+set_location "Net_909_0" macrocell 3 4 0 1
+set_location "Net_938_0" macrocell 0 2 0 0
+set_location "DB_25_30_out_0" macrocell 1 2 0 2
+set_location "DB_37_42_out_4" macrocell 0 2 0 1
+set_location "Net_939_1" macrocell 3 0 1 2
+set_location "Net_909_7" macrocell 3 4 0 3
+set_location "Net_909_2" macrocell 3 4 1 3
+set_location "Net_909_5" macrocell 3 4 1 1
+set_location "DB_31_36_out_2" macrocell 2 4 0 1
+set_location "Net_939_0" macrocell 3 0 1 1
+set_location "DB_31_36_out_3" macrocell 1 2 1 1
+set_location "Net_938_1" macrocell 2 4 0 0
+set_location "DB_37_42_out_3" macrocell 3 1 0 2
+set_location "DB_25_30_out_2" macrocell 2 1 0 3
+set_location "Net_909_4" macrocell 3 4 1 2
+set_location "Net_939_5" macrocell 3 0 0 3
+set_location "DB_37_42_out_1" macrocell 3 1 1 2
+set_location "Net_938_6" macrocell 2 4 1 1
+set_location "Net_939_3" macrocell 3 0 1 3
+set_location "DB_31_36_out_5" macrocell 2 0 0 3
+set_location "Net_909_1" macrocell 3 4 0 2
+set_location "DB_31_36_out_4" macrocell 2 0 1 1
+set_location "Net_939_4" macrocell 3 0 1 0
+set_location "Net_909_6" macrocell 3 4 1 0
+set_location "DB_31_36_out_0" macrocell 2 2 1 1
+set_location "Net_939_6" macrocell 3 0 0 0
+set_location "DB_37_42_out_5" macrocell 0 2 0 2
+set_location "DB_25_30_out_1" macrocell 0 2 1 1
+set_location "\USBFS_1:bus_reset\" interrupt -1 -1 23
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(4)" iocell 12 6
+set_io "Button_1_8_P0(1)" iocell 0 1
+set_io "Button_9_16_P2(3)" iocell 2 3
+set_location "\USBFS_1:sof_int\" interrupt -1 -1 21
+set_io "Button_1_8_P0(4)" iocell 0 4
+set_location "\ButtonReg6:sts:sts_reg\" statuscell 0 2 3 
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(4)" iocell 15 4
+set_io "Button_17_24_P3(6)" iocell 3 6
+set_io "Button_1_8_P0(2)" iocell 0 2
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(5)" iocell 15 5
+set_io "Button_25_30_P1(1)" iocell 1 3
+set_io "Button_9_16_P2(6)" iocell 2 6
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(2)" iocell 12 4
+set_io "Button_1_8_P0(6)" iocell 0 6
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(3)" iocell 12 5
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(0)" iocell 12 2
+set_io "Button_1_8_P0(0)" iocell 0 0
+set_io "Button_25_30_P1(4)" iocell 1 6
+set_io "Button_9_16_P2(7)" iocell 2 7
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(5)" iocell 12 7
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(2)" iocell 15 2
+set_io "Button_25_30_P1(2)" iocell 1 4
+set_io "Button_25_30_P1(5)" iocell 1 7
+set_location "\USBFS_1:arb_int\" interrupt -1 -1 22
+set_io "Button_9_16_P2(0)" iocell 2 0
+# Note: port 15 is the logical name for port 8
+set_io "\USBFS_1:Dp(0)\" iocell 15 6
+set_io "Button_17_24_P3(0)" iocell 3 0
+set_location "\ButtonReg4:sts:sts_reg\" statuscell 2 2 3 
+set_location "\ButtonReg2:sts:sts_reg\" statuscell 1 2 3 
+set_location "\ButtonReg5:sts:sts_reg\" statuscell 2 1 3 
+set_location "\ButtonReg3:sts:sts_reg\" statuscell 3 0 3 
+set_location "\ButtonReg1:sts:sts_reg\" statuscell 3 4 3 
+set_location "\USBFS_1:USB\" usbcell -1 -1 0
+set_io "Button_17_24_P3(4)" iocell 3 4
+set_io "Button_17_24_P3(3)" iocell 3 3
+set_io "Button_9_16_P2(4)" iocell 2 4
+set_io "Button_9_16_P2(2)" iocell 2 2
+set_location "ClockBlock" clockblockcell -1 -1 0
+set_location "\USBFS_1:Dp\" logicalport -1 -1 8
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(1)" iocell 15 1
+set_location "\USBFS_1:ord_int\" interrupt -1 -1 25
+set_location "\USBFS_1:ep_1\" interrupt -1 -1 0
+set_location "\USBFS_1:ep_2\" interrupt -1 -1 1
+set_location "\USBFS_1:ep_0\" interrupt -1 -1 24
+set_io "Button_25_30_P1(0)" iocell 1 2
+# Note: port 12 is the logical name for port 7
+set_io "Button_31_36_P12(1)" iocell 12 3
+set_io "Button_17_24_P3(7)" iocell 3 7
+set_io "Button_17_24_P3(2)" iocell 3 2
+set_location "\USBFS_1:dp_int\" interrupt -1 -1 12
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(0)" iocell 15 0
+set_io "Button_1_8_P0(3)" iocell 0 3
+# Note: port 15 is the logical name for port 8
+set_io "Button_37_42_P15(3)" iocell 15 3
+set_io "Button_9_16_P2(1)" iocell 2 1
+# Note: port 15 is the logical name for port 8
+set_io "\USBFS_1:Dm(0)\" iocell 15 7
+set_io "Button_1_8_P0(5)" iocell 0 5
+set_io "Button_9_16_P2(5)" iocell 2 5
+set_io "Button_17_24_P3(5)" iocell 3 5
+set_io "Button_1_8_P0(7)" iocell 0 7
+set_io "Button_25_30_P1(3)" iocell 1 5
+set_io "Button_17_24_P3(1)" iocell 3 1

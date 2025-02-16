@@ -1,0 +1,46 @@
+# CyController1
+# 2025-02-16 21:06:12Z
+
+# IO_0@[IOP=(1)][IoId=(0)] is reserved: SWDDebugEnabled
+dont_use_io iocell 1 0
+# IO_1@[IOP=(1)][IoId=(1)] is reserved: SWDDebugEnabled
+dont_use_io iocell 1 1
+set_io "\USBFS_1:Dm(0)\" iocell 15 7
+set_io "\USBFS_1:Dp(0)\" iocell 15 6
+set_io "Button_1_8_P0(0)" iocell 0 0
+set_io "Button_1_8_P0(1)" iocell 0 1
+set_io "Button_1_8_P0(2)" iocell 0 2
+set_io "Button_1_8_P0(3)" iocell 0 3
+set_io "Button_1_8_P0(4)" iocell 0 4
+set_io "Button_1_8_P0(5)" iocell 0 5
+set_io "Button_1_8_P0(6)" iocell 0 6
+set_io "Button_1_8_P0(7)" iocell 0 7
+set_io "Button_9_16_P2(0)" iocell 2 0
+set_io "Button_9_16_P2(1)" iocell 2 1
+set_io "Button_9_16_P2(2)" iocell 2 2
+set_io "Button_9_16_P2(3)" iocell 2 3
+set_io "Button_9_16_P2(4)" iocell 2 4
+set_io "Button_9_16_P2(5)" iocell 2 5
+set_io "Button_9_16_P2(6)" iocell 2 6
+set_io "Button_9_16_P2(7)" iocell 2 7
+set_io "Button_17_24_P3(0)" iocell 3 0
+set_io "Button_17_24_P3(1)" iocell 3 1
+set_io "Button_17_24_P3(2)" iocell 3 2
+set_io "Button_17_24_P3(3)" iocell 3 3
+set_io "Button_17_24_P3(4)" iocell 3 4
+set_io "Button_17_24_P3(5)" iocell 3 5
+set_io "Button_17_24_P3(6)" iocell 3 6
+set_io "Button_17_24_P3(7)" iocell 3 7
+set_io "Button_31_36_P12(0)" iocell 12 2
+set_io "Button_31_36_P12(1)" iocell 12 3
+set_io "Button_31_36_P12(2)" iocell 12 4
+set_io "Button_31_36_P12(3)" iocell 12 5
+set_io "Button_31_36_P12(4)" iocell 12 6
+set_io "Button_31_36_P12(5)" iocell 12 7
+set_io "Button_25_30_P1(0)" iocell 1 2
+set_io "Button_25_30_P1(1)" iocell 1 3
+set_io "Button_25_30_P1(2)" iocell 1 4
+set_io "Button_25_30_P1(3)" iocell 1 5
+set_io "Button_25_30_P1(4)" iocell 1 6
+set_io "Button_25_30_P1(5)" iocell 1 7
+set_location "\USBFS_1:USB\" usbcell -1 -1 0

@@ -1,0 +1,7 @@
+C:\Users\billy\Documents\PSoC Creator\PSoC-5LP-Gamepad\CyController1.cydsn\CyController1.cyprj|4fed18b8-223d-4058-b14a-a48cc626c0d6
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|393ca1e0-b63d-4d72-938b-7923e6093eeb
+C:\Users\billy\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|88c68620-a4f5-4daa-af30-aac1f3b9112b
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|5fbd576c-d7c8-4248-9dfd-57999505ee3d
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|7e183070-0c6e-45f5-a564-23c408b81b3a
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|be9aea26-90db-4a69-b5d5-0da53ed1d6e6
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\dev\psoc3\AnalogDevice\PSoC35AnalogDevice.cylib\PSoC35AnalogDevice.cyprj|373813ec-a31c-4c02-8e89-c81f757f88ed

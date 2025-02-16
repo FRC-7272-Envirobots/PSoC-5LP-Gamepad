@@ -34,9 +34,9 @@ USA
 #include <stdio.h>
 
 /* 8 bytes for analog axis data */
-#define ANALOG_SIZE 8
-/* 3 bytes for 22 button inputs */
-#define BUTTON_SIZE 3
+#define ANALOG_SIZE 0
+/* 4 bytes for 32 button inputs. This is the maximum number that WPILib / the Driver Station support */
+#define BUTTON_SIZE 4
 /* 2 bytes for 12 output indicators such as LEDs */
 #define OUTPUT_SIZE 2
 
@@ -50,8 +50,8 @@ void ReadAnalog (void);     /* Function prototype for reading and altering data 
 void ReadButtons (void);    /* Function prototype for reading and altering data for digital button information */
 void SetOutputs (void);     /* Prototype for driving digital outputs */
 
-static uint16 AnalogRaw[ANALOG_SIZE];   /* Raw ADC measurements */
-static int16  AnalogData[ANALOG_SIZE];   /* Scaled ADC measurements */
+//static uint16 AnalogRaw[ANALOG_SIZE];   /* Raw ADC measurements */
+//static int16  AnalogData[ANALOG_SIZE];   /* Scaled ADC measurements */
 static int8 USB_Input_Data[ANALOG_SIZE + BUTTON_SIZE]; /* USB data to send to the PC */
 static uint8 USB_Output_Data[OUTPUT_SIZE]; /* USB data received from the PC */
 
@@ -65,7 +65,7 @@ int main()
     {
     	while(!USBFS_1_bGetEPAckState(IN_EP)); 	/* Wait for ACK before loading data */
         
-		ReadAnalog();	/* Calls function to read analog inputs */
+		//ReadAnalog();	/* Calls function to read analog inputs */
         ReadButtons();	/* Calls function to monitor button presses */
         
         /*Check to see if the IN Endpoint is empty. If so, load it with Input data to be tranfered */
@@ -106,8 +106,8 @@ void StartUp (void)
     }
     
     CYGlobalIntEnable;           					/* Enable Global interrupts */
-    ADC_Start();        					        /* Initialize ADC */
-	ADC_StartConvert();								/* End ADC conversion */    
+    //ADC_Start();        					        /* Initialize ADC */
+	//ADC_StartConvert();								/* End ADC conversion */    
 	USBFS_1_Start(0, USBFS_1_DWR_VDDD_OPERATION);	/* Start USBFS operation/device 0 and with 5V operation */
 	while(!USBFS_1_bGetConfiguration())
     {
@@ -124,19 +124,19 @@ void ReadAnalog (void)
     
     for(i=0; i<ANALOG_SIZE; i++)
     {
-        AnalogRaw[i] = ADC_GetResult16(i) >> 4;     /* Get ADC reading and keep just the 8 upper bits */
-        AnalogData[i] = AnalogRaw[i] - 127;         /* Adjust axis to center the reading */
-        if(AnalogData[i] > 127)
-        {
-            AnalogData[i] = 127;
-        }
-        if(AnalogData[i] < -127)
-        {
-            AnalogData[i] = -127;
-        }
+       // AnalogRaw[i] = ADC_GetResult16(i) >> 4;     /* Get ADC reading and keep just the 8 upper bits */
+       // AnalogData[i] = AnalogRaw[i] - 127;         /* Adjust axis to center the reading */
+       // if(AnalogData[i] > 127)
+       // {
+       //     AnalogData[i] = 127;
+       // }
+       // if(AnalogData[i] < -127)
+       // {
+       //     AnalogData[i] = -127;
+       // }
         
         /* Move analog data to USB array to prepare for sending */
-        USB_Input_Data[i] = AnalogData[i];
+      //  USB_Input_Data[i] = AnalogData[i];
     }
 }
 
@@ -146,13 +146,16 @@ void ReadButtons (void)
     USB_Input_Data[ANALOG_SIZE]   = ButtonReg1_Read(); /* First button byte is after the last analog value */
     USB_Input_Data[ANALOG_SIZE+1] = ButtonReg2_Read();
     USB_Input_Data[ANALOG_SIZE+2] = ButtonReg3_Read();
+    USB_Input_Data[ANALOG_SIZE+3] = ButtonReg4_Read();
+  
+    
 }
 
 void SetOutputs (void)
 {
     /* Write data received from USB to the output control registers */   
-    OutputReg1_Write(USB_Output_Data[0]);
-    OutputReg2_Write(USB_Output_Data[1]);
+    //OutputReg1_Write(USB_Output_Data[0]);
+    //OutputReg2_Write(USB_Output_Data[1]);
 }
 
 /* End of File */
